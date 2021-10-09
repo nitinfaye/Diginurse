@@ -1,0 +1,107 @@
+intents:
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - bot_challenge
+  - times
+  - how_often
+  - how_intense
+  - change_time
+  
+entities:
+  - time
+  - routines
+
+slots:
+    sleep_time:
+      type: unfeaturized
+    wakeup_time:
+      type: unfeaturized
+    breakfast_time:
+      type: unfeaturized
+    lunch_time:
+      type: unfeaturized
+    dinner_time:
+      type: unfeaturized
+    smoking:
+      type: unfeaturized
+    smoke_freq:
+      type: unfeaturized
+    drinking:
+      type: unfeaturized
+    drink_freq:
+      type: unfeaturized
+    workingout:
+      type: unfeaturized
+    workout_freq:
+      type: unfeaturized
+    intence:
+      type: unfeaturized
+    routines:
+      type: categorical
+      values:
+        - wake up
+        - sleep
+    change_field:
+      type: unfeaturized
+    time:
+      type: unfeaturized
+    loop:
+      type: unfeaturized
+    requested_slot:
+      type: unfeaturized
+    round:
+      type: addons.rounds.Rounds
+
+actions:
+  - action_improve_experience
+  - action_ask_smoke
+  - action_often_smoke
+  - action_ask_drink
+  - action_often_drink
+  - action_often_work_out
+  - action_work_out_intence
+  - action_comeback_later
+  - action_thank_you
+  - action_work_out
+  - acion_often_work_out
+  - acion_thank_you
+  - action_configured
+  - action_round
+  - action_recommend
+  - action_deny_recommend
+
+  
+responses:
+  utter_greet:
+  - text: "Hey! How are you?"
+
+  utter_cheer_up:
+  - text: "Here is something to cheer you up:"
+    image: "https://i.imgur.com/nGF1K8f.jpg"
+
+  utter_did_that_help:
+  - text: "Did that help you?"
+
+  utter_happy:
+  - text: "Great, carry on!"
+
+  utter_goodbye:
+  - text: "Bye"
+
+  utter_iamabot:
+  - text: "I am a bot, powered by Rasa."
+
+
+forms:
+  - form_sleep_time
+  - form_meal_time
+  - form_ask_smoke
+  - form_ask_drink
+  - form_ask_workout
+  - form_changes
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
