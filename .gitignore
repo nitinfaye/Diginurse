@@ -2,7 +2,7 @@
 /nohup
 models
 models/**.tar.gz
-cat .gitignore
+cat.gitignore
 # exclude everything except directory foo/bar
 /*
 !/foo
