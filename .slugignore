@@ -1,4 +1,5 @@
-~ $ du -ha --max-depth 1 /app | sort -hr
+heroku run bash -app.py
+du -ha --max-depth 1 /app | sort -hr
 108M    /app
 99M     /app/vendor
 8.1M    /app/.heroku
