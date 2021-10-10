@@ -137,4 +137,3 @@ Werkzeug==2.0.1
 wrapt==1.12.1
 yarl==1.5.1
 zipp==3.5.0
-heroku-repo==1.0.14
