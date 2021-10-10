@@ -1,1 +1,2 @@
-web: gunicorn app:app
+#web: gunicorn app:app
+web: sh Setup.sh && python app.py
