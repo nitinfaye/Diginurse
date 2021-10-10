@@ -1,2 +1,2 @@
-python==3.7.12
-heroku-repo==1.0.14
+python-3.7.12
+heroku-repo-1.0.14
