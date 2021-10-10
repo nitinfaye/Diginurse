@@ -1,3 +1,12 @@
+#FROM shanaka95/rasa:latest
+ADD . /rasa/
+RUN chmod +x /rasa/rasa.sh
+RUN cd /rasa && rasa train
+ENTRYPOINT []
+CMD /rasa/rasa.sh
+
+
+
 FROM continuumio/anaconda3:4.4.0
 COPY . /usr/flask_api/
 EXPOSE 5000
