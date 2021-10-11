@@ -1,7 +1,8 @@
 mkdir -p ~/.rasa/train
 echo "\
 [general]\n\
-email = \"myemail@gmail.com\"\n\
+email = \"nitin.faye@gmail.com\"\n\
+" > ~/.rasa/actions
 " > ~/.rasa/credentials.yml
 echo "\
 [server]\n\
