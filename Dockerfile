@@ -1,9 +1,8 @@
-#FROM shanaka95/rasa:latest
-ADD . /rasa/
-RUN chmod +x /rasa/rasa.sh
-RUN cd /rasa && rasa train
 ENTRYPOINT []
-CMD /rasa/rasa.sh
+RUN apt-get update && apt-get install - pip3 install --no-cache rasa==1.10.8 --use-feature=2020-resolver
+ADD . /app/
+RUN chmod +x /app/start_services.sh
+CMD /app/start_services.sh
 
 
 
@@ -12,7 +11,7 @@ COPY . /usr/flask_api/
 EXPOSE 5000
 WORKDIR /usr/flask_api/
 RUN pip install -r requirements.txt 
-CMD mongo
+CMD mongoDB
 CMD rasa run --credentials credentials.yml
 CMD rasa run actions
 CMD python app.py
