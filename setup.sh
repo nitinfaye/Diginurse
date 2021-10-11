@@ -1,4 +1,4 @@
-mkdir -p ~/.rasa/
+mkdir -p ~/.rasa/train
 echo "\
 [general]\n\
 email = \"myemail@gmail.com\"\n\
