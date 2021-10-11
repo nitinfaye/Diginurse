@@ -61,7 +61,6 @@ Markdown==3.3.4
 MarkupSafe==2.0.1
 matplotlib==3.2.2
 mattermostwrapper==2.2
-mongoDB==5.0.3
 multidict==4.7.6
 networkx==2.4
 numpy==1.18.5
