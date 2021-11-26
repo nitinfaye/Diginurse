@@ -219,6 +219,6 @@
 - every day
 - every week
 - every month
-- dialy
+- daily
 - frequently
 - occasionally
