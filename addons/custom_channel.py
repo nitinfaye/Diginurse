@@ -30,12 +30,20 @@ class MyIO(InputChannel):
         async def health(request: Request) -> HTTPResponse:
             return response.json({"status": "ok"})
 
+        @custom_webhook.route("/welcome_message", methods=["GET"])
+        async def welcome(request: Request) -> HTTPResponse:
+            msg = " HELLO !!!!!"
+            return response.json({"message": msg})
+
         @custom_webhook.route("/webhook", methods=["POST"])
         async def receive(request: Request) -> HTTPResponse:
-            sender_id = request.json.get("sender") # method to get sender_id 
-            text = request.json.get("message") # method to fetch text
-            input_channel = self.name() # method to fetch input channel
-            metadata = self.get_metadata(request) # method to get metadata
+            sender_id = request.json.get("sender")  # method to get sender_id
+            text = request.json.get("message")  # method to fetch text
+            name = request.json.get("name")
+            phone = request.json.get("phone")
+            input_channel = self.name()  # method to fetch input channel
+            metadata = self.get_metadata(request)  # method to get metadata
+            print(__file__, sender_id, text, input_channel, name, phone, metadata)
 
             collector = CollectingOutputChannel()
             
