@@ -21,16 +21,10 @@
   <body>
     <div class="container">
       
-    <button type="button" class="btn btn-primary" onclick="flow('configure');">Configure</button>
-    <button type="button" class="btn btn-secondary" onclick="flow('new_treatment');">New Treatment</button>
-    <button type="button" class="btn btn-success">Success</button>
-    <button type="button" class="btn btn-danger">Danger</button>
-    <button type="button" class="btn btn-warning">Warning</button>
-    <button type="button" class="btn btn-info">Info</button>
-    <button type="button" class="btn btn-light">Light</button>
-    <button type="button" class="btn btn-dark">Dark</button>
-    
-    <button type="button" class="btn btn-link">Link</button>
+    <button type="button" class="btn btn-primary" onclick="flow('configure',2, 'Yes', 'No');">DigiNurse Flow</button>
+    <button type="button" class="btn btn-secondary" onclick="flow('new_treatment',2, 'Yes', 'No');">New Treatment Flow</button>
+    <button type="button" class="btn btn-secondary" onclick="flow('nursing_round',0,'I feel better', 'I feel worse');">Regular Nursing Round Flow</button>
+    <button type="button" class="btn btn-link" onclick="reStart();">Reset</button>
 
     
     </div>
@@ -75,14 +69,14 @@
           //   return msg;
           // }
 
-          function flow(type_) {
+          function flow(type_, count, yes_ , no_) {
             reStart();
             $("#chathistory").empty();
             console.log("flow");
             var m = ""
             botTyping();
             $("#chathistory").append(typing);
-            for (let i = 0; i <= 2; i++) {
+            for (let i = 0; i <= count; i++) {
               
               // sleep(500);
               $.get("/welcome_messages", { number: i + 1, type:type_ }).done(function(data) {
@@ -98,9 +92,10 @@
                 objDiv = document.getElementById("chathistory");
                 objDiv.scrollTop = objDiv.scrollHeight;
 
-                if (i == 2) {
-                  message = '<button class="botButtons" mapto="Yes" onclick="BotButtonClicked(this);">Yes</button>'
-                  message = message + '<button class="botButtons" mapto="No" onclick="BotButtonClicked(this);">No</button>'
+                if (i == count) {
+                  m1 = '<button class="botButtons" mapto="' + yes_ + '" onclick="BotButtonClicked(this);">' + yes_ + '</button>'
+                  m2 = '<button class="botButtons" mapto="' + no_ + '" onclick="BotButtonClicked(this);">' + no_ + '</button>'
+                  message = m1 +  m2
                   // Scroll to the bottom of the chatbox
                   $("#chathistory > .botTyping").remove();
                   $("#chathistory").append(message);
@@ -158,7 +153,7 @@
               var botHtml = data;
               // console.log("adddd")
 
-              sleep(500);
+              sleep(5);
               $("#chathistory > .botTyping").remove();
               $("#chathistory").append(botHtml);
               
