@@ -3,13 +3,14 @@ sys.path.append('../')
 import os
 import json
 
-class Person():
+
+class Person:
     def __init__(self, sender_id):
         self.sender_id = sender_id
         self.round = ""
-        self.data  = []
+        self.data = []
     
-    def save(self,round):
+    def save(self, round):
         # print("============== save")
         path = os.getcwd()
         files = os.listdir(path + "/db")
@@ -41,7 +42,7 @@ class Person():
         self.data.extend(data["data"])
         # print(">>>>>>>>>>> load")
     
-    def load_round(self,sender):
+    def load_round(self, sender):
         path = os.getcwd()
         files = os.listdir(path)
         with open(path + "/db/db.json", "r") as f:
@@ -51,10 +52,9 @@ class Person():
         
         data = data["data"]
         for each in data:
-            if each.get(sender) != None:
+            if each.get(sender) is not None:
                 return each.get(sender)
             else:
                 return -1
 
 
-        
