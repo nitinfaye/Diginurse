@@ -8,6 +8,12 @@ intents:
   - how_often
   - how_intense
   - change_time
+  - better
+  - not_better
+  - all_fine
+  - worse
+  - remind_me
+  - wait
   
 entities:
   - time
@@ -53,6 +59,20 @@ slots:
       type: unfeaturized
     round:
       type: addons.rounds.Rounds
+    ask_medication:
+      type: unfeaturized
+    log_symptoms:
+      type: unfeaturized
+    ask_doctor:
+      type: unfeaturized
+    symptoms:
+      type: unfeaturized
+    vitals:
+      type: unfeaturized
+    name:
+      type: unfeaturized
+    phone:
+      type: unfeaturized
 
 actions:
   - action_improve_experience
@@ -71,6 +91,8 @@ actions:
   - action_round
   - action_recommend
   - action_deny_recommend
+  - action_last_sleep_night
+  - action_ask_doctor_support
 
   
 responses:
@@ -101,6 +123,8 @@ forms:
   - form_ask_drink
   - form_ask_workout
   - form_changes
+  - form_doctor_support
+  - form_pre_post_meal
 
 session_config:
   session_expiration_time: 60
