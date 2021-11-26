@@ -5,6 +5,13 @@
   - action_improve_experience
 > ask_configure
 
+## Select round type - Configure
+* deny
+  - action_round
+  - slot{"round": "configure"}
+  - action_comeback_later
+
+
 ## Select round type - new_treatment
 * deny
   - action_round
@@ -12,7 +19,10 @@
   - action_recommend
 > ask_change_anything
 
-## Select round type - new_treatment - change time - affirm
+> ask_change_anything
+* deny
+  - action_deny_recommend
+
 > ask_change_anything
 * affirm
   - form_changes
@@ -60,8 +70,35 @@
 * deny
   - action_thank_you
 
+## Affirm or Deny if there is nothing to do. i.e. configure is done, rounds are setup, no meal/excercise/bed time
+* affirm OR deny
+ - action_round
+ - slot{"round" : "nothing_to_do" }
+ - action_thank_you
+
 ## Affirm change anything - no
 > ask_change_anything
+
+## ask how feeling now
+* better
+    - action_last_sleep_night
+> last_sleep_night
+
+## apologize feeling worst - ask doctor support
+* not_better OR worse
+  - form_doctor_support
+  - form{"name": "form_doctor_support"}
+  - form{"name": null}
+  - action_last_sleep_night
+> last_sleep_night
+
+## Pre meal - Post meal
+> last_sleep_night
+* all_fine OR worse
+  - form_pre_post_meal
+  - form{"name":"form_pre_post_meal"}
+  - form{"name": null}
+  - action_thank_you
 
 ## say goodbye
 * goodbye
