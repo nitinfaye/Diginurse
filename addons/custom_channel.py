@@ -41,9 +41,11 @@ class MyIO(InputChannel):
             text = request.json.get("message")  # method to fetch text
             name = request.json.get("name")
             phone = request.json.get("phone")
+            flow = request.json.get("flow")
             input_channel = self.name()  # method to fetch input channel
-            metadata = self.get_metadata(request)  # method to get metadata
-            print(__file__, sender_id, text, input_channel, name, phone, metadata)
+            # metadata = self.get_metadata(request)  # method to get metadata
+            metadata = {'name': name, 'phone': phone, 'flow': flow}
+            print(__file__, sender_id, text, input_channel, metadata)
 
             collector = CollectingOutputChannel()
             
