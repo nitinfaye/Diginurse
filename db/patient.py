@@ -137,15 +137,14 @@ class Patient:
 
     def showTimings(self):
         s = self.name + " \n"
-        s += "Dr. : " + str(self.dr_name) + " \n"
-        s += "Wakeup Time    : " + str(self.wakeup_time) + " \n"
-        s += "Breakfast Time : " + str(self.breakfast_time) + " \n"
-        s += "Lunch Time     : " + str(self.lunch_time) + " \n"
-        s += "Dinner Time    : " + str(self.dinner_time) + " \n"
-        s += "Bed Time       : " + str(self.bed_time) + " \n"
-        s += "Smokes         : " + str(self.smoke) + " \n"
-        s += "Drinks         : " + str(self.drink) + " \n"
-        s += "WorkOut        : " + str(self.workout) + " \n"
+        s += "Wakeup     @ " + str(self.wakeup_time) + " \n"
+        s += "Breakfast  @ " + str(self.breakfast_time) + " \n"
+        s += "Lunch      @ " + str(self.lunch_time) + " \n"
+        s += "WorkOut    - " + str(self.workout) + " \n"
+        s += "Dinner     @ " + str(self.dinner_time) + " \n"
+        s += "Bed Time   @ " + str(self.bed_time) + " \n"
+        s += "Smokes     - " + str(self.smoke) + " \n"
+        s += "Alcohol    - " + str(self.drink) + " \n"
         return s
 
     def setNursingRounds(self):
@@ -155,7 +154,7 @@ class Patient:
         self.wakeup_round = self.wakeup_time.left() if self.wakeup_time else '8:00'
         self.mid_day_round = "12:00"
         self.evening_round = '17:00'
-        self.workout_round = self.workout if self.workout else '18:00'
+        self.workout_round = '18:00'
         if self.bed_time is not None:
             self.bed_round = self.bed_time.left()
         else:
@@ -205,18 +204,19 @@ class Patient:
 
     def showNursingRounds(self):
         # Nursing rounds timings of the day
-        s = self.name + " Nursing Round Details \n"
-        s += " Morning Round :" + str(self.wakeup_round) + ' \n'
-        s += " Mid Day Round :" + str(self.mid_day_round) + ' \n'
-        s += " Evening Round :" + str(self.evening_round) + ' \n'
-        s += " Workout Round :" + str(self.workout_round) + ' \n'
-        s += " BedTime Round :" + str(self.bed_round) + ' \n'
-        s += " Pre Breakfast :" + str(self.pre_breakfast_round) + ' \n'
-        s += " Post Breakfast:" + str(self.post_breakfast_round) + ' \n'
-        s += " Pre Lunch     :" + str(self.pre_lunch_round) + ' \n'
-        s += " Post Lunch    :" + str(self.post_lunch_round) + ' \n'
-        s += " Pre Dinner    :" + str(self.pre_dinner_round) + ' \n'
-        s += " Post Dinner   :" + str(self.post_dinner_round) + ' \n'
+        s = "\nNursing Round Timings: \n"
+        s += "\n Morning Round :"
+        s += "\n\t Wakeup    @ " + str(self.wakeup_round)
+        s += "\n\t Premeal   @ " + str(self.pre_breakfast_round.left())
+        s += "\n\t Postmeal  @ " + str(self.post_breakfast_round.left())
+        s += "\n Mid Day Round :"
+        s += "\n\t Premeal   @ " + str(self.pre_lunch_round.left())
+        s += "\n\t Postmeal  @ " + str(self.post_lunch_round.left())
+        s += "\n Evening Round :"
+        s += "\n\t Workout   @ " + str(self.workout_round)
+        s += "\n\t Premeal   @ " + str(self.pre_dinner_round.left())
+        s += "\n\t Postmeal  @ " + str(self.post_dinner_round.left())
+        s += "\n\t Bedtime   @ " + str(self.bed_round) + ' \n'
 
         return s
 
@@ -375,6 +375,7 @@ if __name__ == "__main__":
     # P.updateSchedule(breakfast_time='8:30 - 9:30', dinner_time='19:00 - 19:30')
     d = {'breakfast_time': '8:30 - 9:30', 'dinner_time': '19:00 - 19:30'}
     P.updateSchedule(**d)
+    P.setNursingRounds()
     print(P.showNursingRounds())
     P.addToDB()
     print(P.showTimings())
