@@ -222,3 +222,9 @@
 - daily
 - frequently
 - occasionally
+##intent:digi_nurse_flow
+- Ok DigiNurse
+- DigiNurse
+- Digi Nurse
+- Nurse
+- Sister
