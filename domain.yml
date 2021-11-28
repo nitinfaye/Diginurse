@@ -14,6 +14,7 @@ intents:
   - worse
   - remind_me
   - wait
+  - digi_nurse_flow
   
 entities:
   - time
@@ -93,6 +94,10 @@ actions:
   - action_deny_recommend
   - action_last_sleep_night
   - action_ask_doctor_support
+  - action_ask_changes
+  - action_configure_flow
+  - action_new_treatment_flow
+  - action_regular_nursing_round_flow
 
   
 responses:
