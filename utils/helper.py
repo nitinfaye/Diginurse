@@ -1,14 +1,13 @@
-import sys
-sys.path.append('../')
 from logging import getLogger
 from datetime import datetime as dt
+
 logger = getLogger()
 
 
 def button_it(lists):
     buttons = []
     try:
-        if not isinstance(lists[0],tuple):
+        if not isinstance(lists[0], tuple):
             for i in lists:
                 buttons.append(
                     {
@@ -26,8 +25,6 @@ def button_it(lists):
     except Exception as e:
         logger.exception(e)
 
-
-  
 
 def hour_min_etc(time):
     time = time.split("-")[-1]
@@ -50,9 +47,10 @@ def hour_min_etc(time):
     if minute == 0:
         minute = "00"
 
-    return hour,minute,ampm
+    return hour, minute, ampm
 
-def get_ampm(hour,context):
+
+def get_ampm(hour, context):
     
     """
         Returns AM or PM based on the hour given
@@ -69,7 +67,7 @@ def get_ampm(hour,context):
         if hour > 11:
             return "PM"
         return "AM"
-    elif (context == "lunch"):
+    elif context == "lunch":
         return "PM"
     elif context == "dinner":
         if 6 <= hour <= 12:
@@ -78,7 +76,7 @@ def get_ampm(hour,context):
             return "AM"
             
 
-def get_time_diff(start,limit,context):
+def get_time_diff(start, limit, context):
     """
         :start : start time Ex: wakeup time upper limit for breakfast time
         :limit : limit time Ex: for breakfast limit would be 12 PM
@@ -89,7 +87,7 @@ def get_time_diff(start,limit,context):
     logger.info(f"{__file__} : Limit : {limit}")
     logger.info(f"{__file__} : Context : {context}")
 
-    hour,minute,ampm = hour_min_etc(start)
+    hour, minute, ampm = hour_min_etc(start)
     if limit < hour:
         limit = limit + 12
     if context == "breakfast":
@@ -103,7 +101,7 @@ def get_time_diff(start,limit,context):
             hour = 7
 
     time_ranges = []
-    for i in range(hour,limit + 1):
+    for i in range(hour, limit + 1):
         
         if i == limit:
             break
@@ -127,7 +125,7 @@ def get_recommendation():
         Returns the recommendation based on the persons health status given by doctor
     """
     logger.info(f"{__file__} : [INSIDE] get_recommendation")
-    r = ["Morning Rounds","Premeal","Postmeal","Mid Day Rounds","Premeal","Postmeal","Evening Rounds","Workout","Premeal","Postmeal","Bedmeal"]
+    r = ["Morning Rounds", "Premeal", "Postmeal", "Mid Day Rounds", "Premeal", "Postmeal", "Evening Rounds", "Workout", "Premeal", "Postmeal", "Bedmeal"]
     t = {}
     for i in r:
         t[i] = "9:30"
@@ -136,8 +134,8 @@ def get_recommendation():
 
     tell = "Based on your routine I recommend you following timings for your regular nursing rounds"
 
-    for i,j in t.items():
-            tell += f"<br><strong class=\"imp\">{i}</strong> : {j}"
+    for i, j in t.items():
+        tell += f"<br><strong class=\"imp\">{i}</strong> : {j}"
     tell += "<br> Do you want to change the timings of any of your regular nursing rounds?"
 
     return tell
