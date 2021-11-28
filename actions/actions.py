@@ -6,23 +6,21 @@
 
 
 # This is a simple example for a custom action which utters "Hello World!"
-from db.mongo import Person
-import sys
-sys.path.append("../")
-import logging
+# from db.mongo import Person
+# import sys
+# sys.path.append("../")
+# import logging
 from typing import Any, Text, Dict, List, Optional, Tuple
 
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.forms import FormAction, REQUESTED_SLOT
 from rasa_sdk.events import SlotSet, Restarted
-from datetime import datetime as dt, time
+# from datetime import datetime as dt, time
 from utils.helper import *
 from utils import diginurse_utils as dg
+from actions.action_utils import get_name_phone
 
-
-name = "sachin"
-phone = 7989898989
 
 def yes_no():
     return [
@@ -41,13 +39,22 @@ class FetchRound(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
         sender = tracker.sender_id
-        start_round = dg.startingFlow(name, phone)
-        logger.info(f"{__file__} :  Found starting round ****************** : {start_round}")
+        # start_round = dg.startingFlow(name, phone)
+        start_round = 'nothing_to_do'
+        name = None
+        phone = None
 
-        # for each in tracker.events:
-        #     logger.info(f"{__file__} : each : {each}")
+        for e in tracker.events[::-1]:
+            # logger.info(f"{__file__} : event: {e} ")
+            if e["event"] == "user":
+                message_metadata = e["metadata"]
+                name = message_metadata['name']
+                phone = message_metadata['phone']
+                start_round = message_metadata['flow']
+                break
+        logger.info(f"[{sender}] {__file__} :  Found starting round ****************** : {start_round} , {name} , {phone}")
 
-        return [SlotSet("round", start_round)]
+        return [SlotSet("round", start_round), SlotSet("name", name), SlotSet("phone", phone)]
 
 
 class ActionComebackLater(Action):
@@ -78,11 +85,9 @@ class ActionImproveExperience(Action):
             logger.info(f"{__file__} : each : {each}")
         
         logger.info(f"{__file__} : sender_id : {sender}")
+        name, phone = get_name_phone(tracker)
 
-        p = dg.getPatient(name, phone)
-        # print(p)
-        
-        op = [("Yes you have", "Yes, you have my consent."), ("No you dont", "No, you don't have my consent.")]
+        op = [("Yes you have", "Yes, you have my consent."), ("No you don't", "No, you don't have my consent.")]
         buttons = button_it(op)
         ask = "Do we have your consent to use this information to improve your experience ?"
 
@@ -124,13 +129,14 @@ class SleepTimeForm(FormAction):
             "20:00-21:00 ",
             "21:00-22:00 ",
             "22:00-23:00 ",
-            "23:00-00:00 ",
+            # "23:00-00:00 ",
         ]
 
     def request_next_slot(self,
-            dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> Optional[List[Dict]]:
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any]
+    ) -> Optional[List[Dict]]:
         """Request the next slot and utter template if needed,
             else return None"""
 
@@ -165,6 +171,7 @@ class SleepTimeForm(FormAction):
         if intent == "times":
             # Irfan
             # update sleep time field in db
+            name, phone = get_name_phone(tracker)
             dg.updateSchedule(name, phone, bed_time=value)
 
             return {"sleep_time": value}
@@ -184,6 +191,7 @@ class SleepTimeForm(FormAction):
         if intent == "times":
             # Irfan
             # update wake time field in db
+            name, phone = get_name_phone(tracker)
             dg.updateSchedule(name, phone, wakeup_time=value)
             return {"wakeup_time": value}
         else:
@@ -196,9 +204,11 @@ class SleepTimeForm(FormAction):
             after all required slots are filled"""
         sleep_time = tracker.get_slot('sleep_time')
         wakeup_time = tracker.get_slot('wakeup_time')
-        tell = f"\nGreat! I'll remember that you sleep at {sleep_time} and wake-up at {wakeup_time}."
-        tell += "\nNext is your meal timings."
-        dispatcher.utter_message(text=tell)
+        logger.info(f"{__file__} : {sleep_time} and wake-up at {wakeup_time}.")
+
+        # tell = f"\nGreat! I'll remember that you sleep at {sleep_time} and wake-up at {wakeup_time}."
+        # tell += "\nNext is your meal timings."
+        # dispatcher.utter_message(text=tell)
         return []
 
 
@@ -283,6 +293,7 @@ class MealTimeForm(FormAction):
 
         dinner_times = [
             "19:00-20:00 ",
+            "20:00-21:00 ",
             "21:00-22:00 ",
             "22:00-23:00 ",
         ]
@@ -308,18 +319,18 @@ class MealTimeForm(FormAction):
                     buttons = button_it(buttons)
 
                     ask = "<strong class=\"imp\">When do you generally have your breakfast?</strong>"
-                    dispatcher.utter_message(text=ask,buttons=buttons)
+                    dispatcher.utter_message(text=ask, buttons=buttons)
                 elif slot == "lunch_time":
                     buttons = self._lunch_times()
                     buttons = button_it(buttons)
 
                     ask = "At what time you have your lunch?"
-                    dispatcher.utter_message(text=ask,buttons=buttons)
+                    dispatcher.utter_message(text=ask, buttons=buttons)
                 elif slot == "dinner_time":
                     buttons = self._dinner_times()
                     buttons = button_it(buttons)
                     ask = "Finally, when do you generally have your dinner?"
-                    dispatcher.utter_message(text=ask,buttons=buttons)
+                    dispatcher.utter_message(text=ask, buttons=buttons)
 
                 return [SlotSet("requested_slot", slot)]
         return None
@@ -330,13 +341,14 @@ class MealTimeForm(FormAction):
             dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any],
-        ) -> Dict[Text, Any]:
+    ) -> Dict[Text, Any]:
         """Validate breakfast_time value."""
         intent = tracker.latest_message['intent'].get('name')
         logger.info(f"{__file__} : text : {value} | intent : {intent}")
         if intent == "times":
             # Irfan 
             # update breakfast time field in db
+            name, phone = get_name_phone(tracker)
             dg.updateSchedule(name, phone, breakfast_time=value)
             return {"breakfast_time": value}
         else:
@@ -348,13 +360,14 @@ class MealTimeForm(FormAction):
             dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any],
-        ) -> Dict[Text, Any]:
+    ) -> Dict[Text, Any]:
         """Validate lunch_time value."""
         intent = tracker.latest_message['intent'].get('name')
         logger.info(f"{__file__} : text : {value} | intent : {intent}")
         if intent == "times":
             # Irfan 
             # update lunch time field in db
+            name, phone = get_name_phone(tracker)
             dg.updateSchedule(name, phone, lunch_time=value)
 
             return {"lunch_time": value}
@@ -367,12 +380,13 @@ class MealTimeForm(FormAction):
             dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any],
-        ) -> Dict[Text, Any]:
+    ) -> Dict[Text, Any]:
         """Validate dinner_time value."""
         intent = tracker.latest_message['intent'].get('name')
         if intent == "times":
             # Irfan 
             # update dinner time field in db
+            name, phone = get_name_phone(tracker)
             dg.updateSchedule(name, phone, dinner_time=value)
 
             return {"dinner_time": value}
@@ -387,10 +401,10 @@ class MealTimeForm(FormAction):
         breakfast_time = tracker.get_slot('breakfast_time')
         lunch_time = tracker.get_slot('lunch_time')
         dinner_time = tracker.get_slot('dinner_time')
-        tell = f"Great! I'll remember that you eat at {breakfast_time}, {lunch_time} and {dinner_time}."
-        
-        
-        dispatcher.utter_message(text=tell)
+        logger.info(f"{__file__} : breakfast_time={breakfast_time}, lunch_time={lunch_time} and dinner_time={dinner_time}.")
+
+        # tell = f"Great! I'll remember that you eat at {breakfast_time}, {lunch_time} and {dinner_time}."
+        # dispatcher.utter_message(text=tell)
         return []
 
 
@@ -405,12 +419,11 @@ class AskSmokeForm(FormAction):
     @staticmethod
     def required_slots(tracker: Tracker) -> List[Text]:
         """A list of required slots that the form has to fill"""
+        return ["smoking", "smoke_freq"]
 
-        return ["smoking","smoke_freq"]
     def slot_mappings(self):
         """A dictionary to map required slots to
             - an extracted entity"""
-        
         return {"smoking": self.from_text(),
                 "smoke_freq": self.from_text()
                 }
@@ -441,14 +454,14 @@ class AskSmokeForm(FormAction):
                 if slot == "smoking":
                     buttons = yes_no()
                     buttons = button_it(buttons)
-                    ask = "<br><strong class=\"imp\">Do you smoke?</strong>"
-                    dispatcher.utter_message(text=ask,buttons=buttons)
+                    ask = "Do you smoke?"
+                    dispatcher.utter_message(text=ask, buttons=buttons)
                 elif slot == "smoke_freq":
                     buttons = self._smoke_freq()
                     buttons = button_it(buttons)
 
                     ask = "How often do you smoke?"
-                    dispatcher.utter_message(text=ask,buttons=buttons)
+                    dispatcher.utter_message(text=ask, buttons=buttons)
                 return [SlotSet("requested_slot", slot)]
         return None
 
@@ -462,6 +475,8 @@ class AskSmokeForm(FormAction):
         """Validate smoking value."""
         intent = tracker.latest_message['intent'].get('name')
         logger.info(f"{__file__} : text : {value} | intent : {intent}")
+        name, phone = get_name_phone(tracker)
+
         if intent == "affirm":
             # Irfan 
             # update smoking time field in db
@@ -485,6 +500,7 @@ class AskSmokeForm(FormAction):
         if intent == "how_often":
             # Irfan 
             # update smoke time field in db
+            name, phone = get_name_phone(tracker)
             dg.updateSchedule(name, phone, smoke=value)
 
             return {"smoke_freq": value}
@@ -514,8 +530,8 @@ class AskDrinkForm(FormAction):
     @staticmethod
     def required_slots(tracker: Tracker) -> List[Text]:
         """A list of required slots that the form has to fill"""
+        return ["drinking", "drink_freq"]
 
-        return ["drinking","drink_freq"]
     def slot_mappings(self):
         """A dictionary to map required slots to
             - an extracted entity"""
@@ -530,11 +546,6 @@ class AskDrinkForm(FormAction):
             ("Frequently", "Frequently"),
             ("Occasionally", "Occasionally")
         ]
-    # def _yes_no(self):
-    #     return [
-    #         ("Yes", "Yes"),
-    #         ("No", "No")
-    #     ]
         
     def request_next_slot(self,
             dispatcher: CollectingDispatcher,
@@ -551,13 +562,13 @@ class AskDrinkForm(FormAction):
                     buttons = yes_no()
                     buttons = button_it(buttons)
                     ask = "Do you drink alcohol?"
-                    dispatcher.utter_message(text=ask,buttons=buttons)
+                    dispatcher.utter_message(text=ask, buttons=buttons)
                 elif slot == "drink_freq":
                     buttons = self._drink_freq()
                     buttons = button_it(buttons)
 
                     ask = "How often do you drink alcohol?"
-                    dispatcher.utter_message(text=ask,buttons=buttons)
+                    dispatcher.utter_message(text=ask, buttons=buttons)
                 return [SlotSet("requested_slot", slot)]
         return None
 
@@ -571,15 +582,16 @@ class AskDrinkForm(FormAction):
         """Validate drinking value."""
         intent = tracker.latest_message['intent'].get('name')
         logger.info(f"{__file__} : text : {value} | intent : {intent}")
+        name, phone = get_name_phone(tracker)
         if intent == "affirm":
             # Irfan 
             # update drinking time field in db
             dg.updateSchedule(name, phone, drink=value)
-
             return {"drinking": value}
         else:
             dg.updateSchedule(name, phone, drink="No")
             return {"drinking": "No", "drink_freq": "No"}
+
     def validate_drink_freq(
             self,
             value: Text,
@@ -593,6 +605,7 @@ class AskDrinkForm(FormAction):
         if intent == "how_often":
             # Irfan 
             # update drink time field in db
+            name, phone = get_name_phone(tracker)
             dg.updateSchedule(name, phone, drink=value)
 
             return {"drink_freq": value}
@@ -622,15 +635,15 @@ class AskWorkOutForm(FormAction):
     @staticmethod
     def required_slots(tracker: Tracker) -> List[Text]:
         """A list of required slots that the form has to fill"""
+        return ["workingout", "workout_freq", "intence"]
 
-        return ["workingout","workout_freq","intence"]
     def slot_mappings(self):
         """A dictionary to map required slots to
             - an extracted entity"""
         
         return {"workingout": self.from_text(),
                 "workout_freq": self.from_text(),
-                "intence":self.from_text()
+                "intence": self.from_text()
                 }
 
     def _workout_freq(self):
@@ -639,26 +652,21 @@ class AskWorkOutForm(FormAction):
             ("Frequently", "Frequently"),
             ("Occasionally", "Occasionally")
         ]
+
     def _how_intence(self):
         return [
-            ("Low", "low"),
-            ("Medium", "medium"),
-            ("High", "high")
+            ("No major exertion on body", "No major exertion on body"),
+            ("Moderately Intense", "Moderately Intense"),
+            ("Very Intense", "Very Intense")
         ]
 
-    # def _yes_no(self):
-    #     return [
-    #         ("Yes", "Yes"),
-    #         ("No", "No")
-    #     ]
-        
     def request_next_slot(self,
             dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> Optional[List[Dict]]:
         """Request the next slot and utter template if needed,
             else return None"""
-        till_now = [{i:tracker.get_slot(i)} for i in self.required_slots(tracker)]
+        till_now = [{i: tracker.get_slot(i)} for i in self.required_slots(tracker)]
         logger.info(f"{__file__} : till now : {till_now}")
         for slot in self.required_slots(tracker):
             if self._should_request_slot(tracker, slot):
@@ -694,6 +702,7 @@ class AskWorkOutForm(FormAction):
         """Validate workingout value."""
         intent = tracker.latest_message['intent'].get('name')
         logger.info(f"{__file__} : text : {value} | intent : {intent}")
+        name, phone = get_name_phone(tracker)
         if intent == "affirm":
             # Irfan 
             # update workout time field in db
@@ -703,7 +712,7 @@ class AskWorkOutForm(FormAction):
         else:
             logger.info("Workout No")
             dg.updateSchedule(name, phone, workout="No")
-            return {"workingout": "No", "workout_freq": "No","intence":"No"}
+            return {"workingout": "No", "workout_freq": "No", "intence": "No"}
 
     def validate_workout_freq(
             self,
@@ -715,6 +724,7 @@ class AskWorkOutForm(FormAction):
         """Validate workout_freq value."""
         intent = tracker.latest_message['intent'].get('name')
         logger.info(f"{__file__} : text : {value} | intent : {intent}")
+        name, phone = get_name_phone(tracker)
         if intent == "how_often":
             # Irfan 
             # update how_often workout field in db
@@ -734,6 +744,7 @@ class AskWorkOutForm(FormAction):
         """Validate intence value."""
         intent = tracker.latest_message['intent'].get('name')
         logger.info(f"{__file__} : text : {value} | intent : {intent}")
+        name, phone = get_name_phone(tracker)
         if intent == "how_intense":
             # Irfan 
             # update intence [low,high,medium] field in db
@@ -748,14 +759,18 @@ class AskWorkOutForm(FormAction):
             domain: Dict[Text, Any]) -> List[Dict]:
         """Define what the form has to do
             after all required slots are filled"""
-        
+
+        name, phone = get_name_phone(tracker)
         workingout = tracker.get_slot('workingout')
         workout_freq = tracker.get_slot('workout_freq')
         intence = tracker.get_slot('intence')
+
         logger.info(f"{__file__} : workingout : {workingout} | workout_freq : {workout_freq} | intence : {intence}")
-        tell = dg.showSchedule(name, phone)
-        tell += "\nAwesome! Your diginurse is configured and ready to go. Let's start working to feel you better"
-        tell += "\nYou can update the changes in your routine and life style just by chatting with me \n\n<strong class=\"imp\">. \nFor example, just type Change my breakfast time </strong>"
+        show = dg.showSchedule(name, phone)
+        logger.info(f"\n Schedule \n{show}")
+
+        tell = "\nAwesome! Your diginurse is configured and ready to go. Let's start working to feel you better."
+        tell += "\n\nYou can update the changes in your routine and life style just by chatting with me. \nFor example, just type - Change my breakfast time"
         dispatcher.utter_message(text=tell)
         return []
        
@@ -774,22 +789,22 @@ class ActionThankYou(Action):
         return [Restarted()]
 
 
-class ActionConfigured(Action):
-
-    def name(self) -> Text:
-        return "action_configured"
-
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-
-        # for each in tracker.events:
-        #     logger.info(f"{__file__} : each : {each}")
-
-        tell = "Awesome! Your Diginurse is configured and ready to go. Let's start working to feel you better."
-        tell += "You can update the changes in your routine and life style just by chatting with me \n\n For example, just type 'Change my breakfast time'."
-        dispatcher.utter_message(text=tell)
-        return []
+# class ActionConfigured(Action):
+#
+#     def name(self) -> Text:
+#         return "action_configured"
+#
+#     def run(self, dispatcher: CollectingDispatcher,
+#             tracker: Tracker,
+#             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+#
+#         # for each in tracker.events:
+#         #     logger.info(f"{__file__} : each : {each}")
+#
+#         tell = "\nAwesome! Your diginurse is configured and ready to go. Let's start working to feel you better"
+#         tell += "\n\nYou can update the changes in your routine and life style just by chatting with me. \nFor example, just type - Change my breakfast time"
+#         dispatcher.utter_message(text=tell)
+#         return []
 
 
 class ActionRecommend(Action):
@@ -801,10 +816,9 @@ class ActionRecommend(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        # for each in tracker.events:
-        #     logger.info(f"{__file__} : each : {each}")
-
+        name, phone = get_name_phone(tracker)
         logger.info(f"{__file__} : Inside action_recommend")
+
         tell = "\nBased on your routine I recommend you following timings for your regular nursing rounds"
         tell += "\n\n"+dg.showNursingRounds(name, phone)
         tell += "\n\nDo you want to change timings of any followup?"
@@ -835,7 +849,7 @@ class ActionRecommenddeny(Action):
         return [Restarted()]
 
 
-class ActionAskChages(Action):
+class ActionAskChanges(Action):
 
     def name(self) -> Text:
         return "action_ask_changes"
@@ -848,7 +862,7 @@ class ActionAskChages(Action):
         #     logger.info(f"{__file__} : each : {each}")
 
         tell = "Please type the task timings or lifestyle activity you want to change."
-        tell += 'For example, type <strong class="imp"> Change my breakfast time </strong>'
+        tell += '\nFor example, Change my breakfast time'
         dispatcher.utter_message(text=tell)
         return []
 
@@ -859,7 +873,6 @@ class FormChanges(FormAction):
 
     def name(self) -> Text:
         """Unique identifier of the form"""
-
         return "form_changes"
 
     @staticmethod
@@ -883,17 +896,18 @@ class FormChanges(FormAction):
             domain: Dict[Text, Any]) -> Optional[List[Dict]]:
         """Request the next slot and utter template if needed,
             else return None"""
-        logger.info(f"{__file__} : Inside request_next_slot of FormChanges")
+        name, phone = get_name_phone(tracker)
 
         for slot in self.required_slots(tracker):
             if self._should_request_slot(tracker, slot):
+                logger.info(f"{__file__} : Inside request_next_slot of FormChanges | slot = {slot}")
 
                 # utter template and request slot
                 if slot == "change_field":
                     tell = "Please type the task timings or lifestyle activity you want to change."
-                    tell += 'For example, type <strong class="imp"> Change my breakfast time </strong>'
-
+                    tell += '\nFor example, Change my breakfast time'
                     dispatcher.utter_message(text=tell)
+                    # dispatcher.utter_message(template='action_recommend')
 
                 elif slot == "time":
                     if self._time_clash == 1:
@@ -904,12 +918,13 @@ class FormChanges(FormAction):
                         field = tracker.get_slot("change_field")
                         ask = f"\nWhat is your updated {field} time ?"
                         dispatcher.utter_message(text=ask)
-                elif slot == "loop":
-                    tell = "\nYour routine has been updated."
-                    ask = tell + dg.showNursingRounds(name, phone)
-                    dispatcher.utter_message(text=ask)
 
-                    ask = "\n Do you want to change timings of any followup ?"
+                elif slot == "loop":
+                    tell = "\nYour routine has been updated.\n"
+                    tell += "\n\n"+dg.showNursingRounds(name, phone)
+                    tell += "\n\nDo you want to change timings of any followup?"
+
+                    ask = tell
                     buttons = yes_no()
                     buttons = button_it(buttons)
                     dispatcher.utter_message(text=ask, buttons=buttons)
@@ -930,7 +945,7 @@ class FormChanges(FormAction):
         logger.info(f"{__file__} : text : {value} | intent : {intent}")
         if intent == "change_time":
             field = tracker.get_slot("routines")
-            time  = tracker.get_slot("time")
+            time = tracker.get_slot("time")
 
             logger.info(f"{__file__} : End of validate change field | change field = {field}, time = {time} ")
             return {"change_field": field, "time": time}
@@ -949,6 +964,7 @@ class FormChanges(FormAction):
         logger.info(f"{__file__} : Inside validate time")
         intent = tracker.latest_message['intent'].get('name')
         logger.info(f"{__file__} : text : {value} | intent : {intent}")
+        name, phone = get_name_phone(tracker)
 
         if intent in ["times", "change_time"]:
             field = tracker.get_slot("routines")
@@ -982,12 +998,12 @@ class FormChanges(FormAction):
             dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any],
-    ) -> List[Dict]:
+    ) -> Dict[Text, Any]:
         """Define what the form has to do
             after all required slots are filled"""
-        logger.info(f"{__file__} : Inside submit validate_loop")
-        
         intent = tracker.latest_message['intent'].get('name')
+        logger.info(f"{__file__} : Inside validate_loop | intent = {intent}")
+
         if intent == "affirm":
             return {"change_field": None, "time": None, "loop": None}
         else:
@@ -998,11 +1014,12 @@ class FormChanges(FormAction):
             domain: Dict[Text, Any]) -> List[Dict]:
         """Define what the form has to do
             after all required slots are filled"""
-        logger.info(f"{__file__} :  Inside submit formchanges")
         field = tracker.get_slot('change_field')
         time = tracker.get_slot('time')
-        tell = f"Your routine has been updated"
-        
+        loop = tracker.get_slot('loop')
+        logger.info(f"{__file__} : Inside submit form_changes | field : {field} | time : {time} | loop : {loop} ")
+
+        tell = "Perfect! Everything is set for your quick recovery."
         dispatcher.utter_message(text=tell)
-        # dispatcher.utter_template('action_recommend', tracker)
-        return []
+
+        return [Restarted()]

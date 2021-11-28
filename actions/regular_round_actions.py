@@ -12,10 +12,11 @@ from rasa_sdk.events import SlotSet, Restarted
 from datetime import datetime as dt, time
 from utils.helper import *
 from utils import diginurse_utils as dg
+from actions.action_utils import get_name_phone
 
 
-name = "sachin"
-phone = 7989898989
+# name = "Sofi1234567sda12341"
+# phone = 7989898989
 
 
 class ActionImproveExperience(Action):
@@ -37,6 +38,12 @@ class ActionImproveExperience(Action):
 
         sender = tracker.sender_id
         tell = ""
+        # for e in tracker.events[::-1]:
+        #     logger.info(f"{__file__} : event: {e} ")
+
+        name, phone = get_name_phone(tracker)
+        logger.info(f"[{sender}] {__file__} : action_last_sleep_night |  name : {name} | phone : {phone}")
+
         status = dg.getPatientStatus(name, phone)
         if status == 'Not well':
             tell = f"\n Yesterday you were {status}. Do you want to connect with your doctor?"
@@ -114,6 +121,7 @@ class PrePostMeal(FormAction):
             else return None"""
 
         intent = tracker.latest_message['intent'].get('name')
+        name, phone = get_name_phone(tracker)
 
         for slot in self.required_slots(tracker):
             if self._should_request_slot(tracker, slot):
@@ -140,7 +148,7 @@ class PrePostMeal(FormAction):
                             s += "\n take " + dg.getMedItemName(item)
                         remind = f"I want to remind you about your scheduled {s} ..."
                     if restrictions is not None:
-                        recommend = f"Your doctor has recommend you {restrictions} "
+                        recommend = f"Your doctor has recommended you {restrictions} "
                     else:
                         treatment = "body checkup"  # TODO load from db
                         remind = f"You have {treatment} scheduled for today please do not eat anything ..."
@@ -208,13 +216,17 @@ class PrePostMeal(FormAction):
     ) -> Dict[Text, Any]:
 
         intent = tracker.latest_message['intent'].get('name')
+        name, phone = get_name_phone(tracker)
 
         logger.info(f"{__file__} : validate_ask_medication :  text : {value} | intent : {intent}")
         msg = ""
         if intent in ["remained_me", "deny"]:
             # TODO Asked to remind after some time but need to extract that time
             # update remind field to True
-            pass
+            tell = "Sure, let me know when you are ready"
+            dispatcher.utter_message(text=tell)
+
+            return {"ask_medication": "completed", 'log_symptoms': 'completed', 'symptoms': 'completed', 'vitals': 'completed'}
         else:
             # logging status of all med/vital/symptoms are taken/done/checked/completed
             for item in dg.getMedicines(name, phone, self._current_round):
@@ -231,18 +243,23 @@ class PrePostMeal(FormAction):
 
         intent = tracker.latest_message['intent'].get('name')
         ret_slots = dict()
+        name, phone = get_name_phone(tracker)
 
         logger.info(f"{__file__} : validate_log_symptoms :  text : {value} | intent : {intent}")
         msg = ""
         if intent in ["remained_me", "deny"]:
             # TODO Asked to remind after some time but need to extract that time
             # update remind field to True
-            pass
+            tell = "Sure, let me know when you are ready"
+            dispatcher.utter_message(text=tell)
+
+            return {'log_symptoms': ret_slots,  'symptoms': 'completed', 'vitals': 'completed'}
+
         elif intent in ["affirm"]:
             # user is ready to log symptoms and vitals
 
             # self._current_round = dg.getCurrentRound(name, phone)
-            self._current_round = 'breakfast'       #######  TODO :  currently it is hardcoded nee to remove ti
+            self._current_round = 'breakfast'       #######  TODO :  currently it is hardcoded need to remove it
 
             # get the list of symptoms and vitals for logging purpose
             if self._current_round is not None:
@@ -260,6 +277,10 @@ class PrePostMeal(FormAction):
                 ret_slots['vitals'] = 'completed'
             else:
                 self._vital_name = dg.getMedItemName(self._vitals[-1])
+
+        logger.info(f"{__file__} : end of validate_log_symptoms :  symptoms = {self._symptoms} | vitals = {self._vitals} ")
+        logger.info(f"{__file__} : end of validate_log_symptoms :  _symptom_name =  {self._symptom_name} | _vital_name = {self._vital_name}")
+        logger.info(f"{__file__} : end of validate_log_symptoms :  ret_slots =  {ret_slots} ")
 
         return {'log_symptoms': ret_slots if len(ret_slots) == 0 else None}
 
@@ -320,6 +341,7 @@ class PrePostMeal(FormAction):
 
         logger.info(f"{__file__} : submit of  PrePostMeal ")
         # we are here because patient is not feeling well. So need to update the DB accordingly.
+        name, phone = get_name_phone(tracker)
         dg.updatePatientStatus(name, phone, 'better')
 
         ask_medication = tracker.get_slot('ask_medication')
@@ -333,8 +355,8 @@ class PrePostMeal(FormAction):
         # update the DB with symptoms and vitals
         dg.addToDB(name, phone)
 
-        dispatcher.utter_message(text=tell)
-        return []
+        # dispatcher.utter_message(text=tell)
+        return [Restarted()]
 
 
 class DoctorSupport(FormAction):
@@ -349,7 +371,7 @@ class DoctorSupport(FormAction):
             ("No, there is no need", "No, there is no need"),
             ("No, I want to wait", "No, I want to wait"),
             ("No, I want to wait for couple of hours", "No, I want to wait for couple of hours"),
-            ("Yes Please, that'll we great", "Yes Please, that'll we great")
+            ("Yes Please, that'll be great", "Yes Please, that'll be great")
         ]
 
     @staticmethod
@@ -368,6 +390,7 @@ class DoctorSupport(FormAction):
             domain: Dict[Text, Any]) -> Optional[List[Dict]]:
         """Request the next slot and utter template if needed,
             else return None"""
+        name, phone = get_name_phone(tracker)
 
         for slot in self.required_slots(tracker):
             if self._should_request_slot(tracker, slot):
@@ -414,6 +437,8 @@ class DoctorSupport(FormAction):
         logger.info(f" {__file__} Inside validate_ask_doctor ::  text : {value} | intent : {intent}")
         msg = ""
         status = None
+        name, phone = get_name_phone(tracker)
+
         if intent == "deny":
             dg.updatePatientStatus(name, phone, 'Not well')
 
