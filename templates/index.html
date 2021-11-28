@@ -21,11 +21,10 @@
   <body>
     <div class="container">
       
-    <button type="button" class="btn btn-primary" onclick="flow('configure',2, 'Yes', 'No');">DigiNurse Flow</button>
-    <button type="button" class="btn btn-secondary" onclick="flow('new_treatment',2, 'Yes', 'No');">New Treatment Flow</button>
-    <button type="button" class="btn btn-secondary" onclick="flow('nursing_round',0,'I feel better', 'I feel worse');">Regular Nursing Round Flow</button>
+    <button type="button" class="btn btn-primary" onclick="start_flow('configure');">DigiNurse Flow</button>
+    <button type="button" class="btn btn-secondary" onclick="start_flow('new_treatment');">New Treatment Flow</button>
+    <button type="button" class="btn btn-secondary" onclick="start_flow('regular_nursing');">Regular Nursing Round Flow</button>
     <button type="button" class="btn btn-link" onclick="reStart();">Reset</button>
-
     
     </div>
       <img onclick="toggle_visibility('chatWindow');" class="chat_button" src="{{ url_for('static',filename='imgs/chatbot.svg') }}"/>
@@ -131,6 +130,42 @@
         function botTyping() {
           typing = '<div class="botTyping"><span></span><span></span><span></span></div>';
           return typing;
+        }
+
+        function start_flow(type_) {
+          reStart();
+          $("#chathistory").empty();
+          console.log("flow");
+
+          var rawText = "OK DigiNurse";
+          var userHtml = '<p class="userText"><span>' + rawText + '</span></p>';
+          $("#textInput").val("");
+
+
+          if (rawText) {
+              $("#chathistory").append(userHtml);
+              // document.getElementById('userInput').scrollIntoView({block: 'start', behavior: 'smooth'});
+              typing =  botTyping();
+              $("#chathistory").append(typing);
+
+              console.log()
+              objDiv = document.getElementById("chathistory");
+              objDiv.scrollTop = objDiv.scrollHeight;
+
+              $.get("/get", { msg: rawText, flow:type_ }).done(function(data) {
+              var botHtml = data;
+              // console.log("adddd")
+
+              sleep(5);
+              $("#chathistory > .botTyping").remove();
+              $("#chathistory").append(botHtml);
+
+              objDiv = document.getElementById("chathistory");
+              objDiv.scrollTop = objDiv.scrollHeight;
+              // document.getElementById('userInput').scrollIntoView({block: 'start', behavior: 'smooth'});
+            });
+          }
+
         }
 
         function getBotResponse() {
