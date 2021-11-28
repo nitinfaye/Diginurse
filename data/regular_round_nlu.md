@@ -32,7 +32,6 @@
 - it was horrible
 - it was worse than before
 - no not good
-- not better
 - it was not fair
 - worse
 

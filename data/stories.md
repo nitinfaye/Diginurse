@@ -1,20 +1,32 @@
+## DigiNurse flows
+* digi_nurse_flow
+  - action_round
+  - slot{"round": "configure"}
+  - action_configure_flow
+
+* digi_nurse_flow
+  - action_round
+  - slot{"round": "new_treatment"}
+  - action_new_treatment_flow
+
+* digi_nurse_flow
+  - action_round
+  - slot{"round": "regular_nursing"}
+  - action_regular_nursing_round_flow
+
 ## Select round type - Configure
 * affirm
-  - action_round
   - slot{"round": "configure"}
   - action_improve_experience
 > ask_configure
 
 ## Select round type - Configure
 * deny
-  - action_round
   - slot{"round": "configure"}
   - action_comeback_later
 
-
 ## Select round type - new_treatment
 * deny
-  - action_round
   - slot{"round": "new_treatment"}
   - action_recommend
 > ask_change_anything
@@ -32,19 +44,17 @@
 
 ## Select round type - new_treatment - affirm
 * affirm
-  - action_round
   - slot{"round": "new_treatment"}
   - form_changes
   - form{"name": "form_changes"}
   - form{"name": null}
   - action_recommend
+> ask_change_anything
 
 ## Select round type - new_treatment - deny
 > ask_change_anything
 * deny
   - action_deny_recommend
-
-
 
 ## Affirm improve experience
 > ask_configure
@@ -70,18 +80,12 @@
 * deny
   - action_thank_you
 
-## Affirm or Deny if there is nothing to do. i.e. configure is done, rounds are setup, no meal/excercise/bed time
-* affirm OR deny
- - action_round
- - slot{"round" : "nothing_to_do" }
- - action_thank_you
-
 ## Affirm change anything - no
 > ask_change_anything
 
 ## ask how feeling now
 * better
-    - action_last_sleep_night
+ - action_last_sleep_night
 > last_sleep_night
 
 ## apologize feeling worst - ask doctor support
@@ -99,6 +103,10 @@
   - form{"name":"form_pre_post_meal"}
   - form{"name": null}
   - action_thank_you
+
+* change_time
+  - action_round
+  - action_ask_changes
 
 ## say goodbye
 * goodbye
